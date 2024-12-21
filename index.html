@@ -19,20 +19,26 @@
       const ctx = canvas.getContext("2d");
       const boxSize = 37; // 1cm box size in pixels (assuming 1cm = 37px)
       let goblinX = 0; // Starting position of the goblin
-      const goblinY = boxSize * 7; // Y position in the 7th row
+      let goblinY = boxSize * 7; // Y position in the 7th row
       const goblinWidth = boxSize; // Width of the goblin box
       const goblinHeight = boxSize; // Height of the goblin box
       const towerRange = 150; // Radius of the tower's range
 
-      async function isInRange(attackerX, attackerY, targetX, targetY, range) {
+
+      
+      async function isInRange(attackerX, attackerY, towerX, towerY, range) {
         const distance = Math.sqrt(
-          Math.pow(attackerX - targetX, 2) + Math.pow(attackerY - targetY, 2)
+          Math.pow(attackerX - towerX, 2) + Math.pow(attackerY - towerY, 2)
         );
-        let isInRange = distance <= range;
+        let inRange = distance <= range;
+
+        if (inRange) {
+          drawBullet(towerX-boxSize/2, towerY-boxSize/2);
+        } 
         return {
-          isInRange,
+          inRange,
           attacker: { x: attackerX, y: attackerY },
-          target: { x: targetX, y: targetY },
+          tower: { x: towerX, y: towerY },
         }; // Return range status and coordinates
       }
 
@@ -44,9 +50,11 @@
         }
       }
       
-      function drawBullet(bulletX, bulletY) {
+      function drawBullet(bulletX, bulletY,targetX,targetY) {
         ctx.fillStyle = "red"; // Color of the bullet
         ctx.fillRect(bulletX, bulletY, 37, 37); // Draw the bullet
+        
+
       }
 
       function drawRange(centerX, centerY) {
@@ -75,10 +83,8 @@
           startX + (towerSize * boxSize) / 2,
           startY + (towerSize * boxSize) / 2
         ); // Draw the range
-        const { isInRange, attacker, target } = isInRange(goblinX, goblinY, startX + towerSize * boxSize / 2, startY + towerSize * boxSize / 2, towerRange);
-        if (isInRange) {
-            drawBullet(attacker.x, attacker.y); // Draw the bullet if within range
-         }
+        const { inRange, attacker, tower } = isInRange(goblinX, goblinY, startX + towerSize * boxSize / 2, startY + towerSize * boxSize / 2, towerRange);
+
 
         return { centerX: canvas.width / 2, centerY: canvas.height / 2 };
       }
@@ -109,13 +115,13 @@
           'updateGoblin'
         ];
 
+        const results = {};
+
         functionsToCheck.forEach(func => {
-          if (typeof window[func] === 'function') {
-            console.log(`${func} is loaded.`);
-          } else {
-            console.log(`${func} is not loaded.`);
-          }
+          results[func] = typeof window[func] === 'function';
         });
+
+        return results; // Return an object with function names and their status
       }
 
       // Call the checkFunctions after defining your functions

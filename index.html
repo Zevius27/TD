@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>TD</title>
+   <style>
+      canvas{
+         border: 2px solid black;
+      }
+   </style>
+</head>
+<body>
+   <div class="container">
+      <canvas id="canvas" width="370" height="370">
+       
+      </canvas>
+   </div>
+   <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      const boxSize = 37; // 1cm box size in pixels (assuming 1cm = 37px)
+
+      for(let i = 0; i < canvas.width; i += boxSize){
+         for(let j = 0; j < canvas.height; j += boxSize){
+            ctx.strokeRect(i, j, boxSize, boxSize); // Draw the grid box
+         }
+      }
+
+      // Function to draw a 4x4 tower in the middle of the canvas
+      function drawTower() {
+         const towerSize = 1.2; // 4x4 tower
+         const startX = (canvas.width / 2) - (towerSize * boxSize / 2); // Centering the tower
+         const startY = (canvas.height / 2) - (towerSize * boxSize / 2); // Centering the tower
+
+         ctx.fillStyle = "gray"; // Color of the tower
+         ctx.fillRect(startX, startY, towerSize * boxSize, towerSize * boxSize); // Draw the tower
+
+         // Draw a circle around the tower
+         ctx.strokeStyle = "black"; // Color of the circle boundary
+         ctx.beginPath();
+         const range = 150; // Radius slightly larger than the tower
+         ctx.arc(canvas.width / 2, canvas.height / 2, range, 0, 2 * Math.PI);
+         ctx.stroke(); // Only draw the boundary of the circle
+      }
+
+      // Function to draw the goblin box
+      let goblinX = 0; // Starting position of the goblin
+      const goblinY = boxSize * 7; // Y position in the 7th row
+      const goblinWidth = boxSize; // Width of the goblin box
+      const goblinHeight = boxSize; // Height of the goblin box
+
+      function drawGoblin() {
+         ctx.fillStyle = "green"; // Color of the goblin
+         ctx.fillRect(goblinX, goblinY, goblinWidth, goblinHeight); // Draw the goblin box
+         ctx.fillStyle = "white"; // Color for the text
+         ctx.font = "bold 12px Arial"; // Font settings
+         ctx.fillText("Goblin", goblinX + 5, goblinY + 20); // Draw the goblin text
+      }
+
+      function updateGoblin() {
+         ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+         for(let i = 0; i < canvas.width; i += boxSize){
+            for(let j = 0; j < canvas.height; j += boxSize){
+               ctx.strokeRect(i, j, boxSize, boxSize); // Redraw the grid box
+            }
+         }
+         drawTower(); // Redraw the tower
+         goblinX += 2; // Move goblin to the right
+         if (goblinX > canvas.width) { // Reset position if it goes off screen
+            goblinX = -goblinWidth;
+         }
+         drawGoblin(); // Draw the goblin
+         requestAnimationFrame(updateGoblin); // Request next frame
+      }
+
+      updateGoblin(); // Start the goblin animation
+   </script>
+</body>
+</html>

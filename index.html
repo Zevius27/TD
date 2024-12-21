@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>TD</title>
-   <style>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TD</title>
+    <style>
       canvas {
-         border: 2px solid black;
+        border: 2px solid black;
       }
-   </style>
-</head>
-<body>
-   <div class="container">
+    </style>
+  </head>
+  <body>
+    <div class="container">
       <canvas id="canvas" width="370" height="370"></canvas>
-   </div>
-   <script>
+    </div>
+    <script>
       const canvas = document.getElementById("canvas");
       const ctx = canvas.getContext("2d");
       const boxSize = 37; // 1cm box size in pixels (assuming 1cm = 37px)
@@ -23,66 +23,105 @@
       const goblinWidth = boxSize; // Width of the goblin box
       const goblinHeight = boxSize; // Height of the goblin box
       const towerRange = 150; // Radius of the tower's range
-      
+
       async function isInRange(attackerX, attackerY, targetX, targetY, range) {
-         const distance = Math.sqrt(Math.pow(attackerX - targetX, 2) + Math.pow(attackerY - targetY, 2));
-         let isInRange = distance <= range;
-         return { isInRange, attacker: { x: attackerX, y: attackerY }, target: { x: targetX, y: targetY } }; // Return range status and coordinates
+        const distance = Math.sqrt(
+          Math.pow(attackerX - targetX, 2) + Math.pow(attackerY - targetY, 2)
+        );
+        let isInRange = distance <= range;
+        return {
+          isInRange,
+          attacker: { x: attackerX, y: attackerY },
+          target: { x: targetX, y: targetY },
+        }; // Return range status and coordinates
       }
+
       function drawGrid() {
-         for (let i = 0; i < canvas.width; i += boxSize) {
-            for (let j = 0; j < canvas.height; j += boxSize) {
-               ctx.strokeRect(i, j, boxSize, boxSize); // Draw the grid box
-            }
-         }
+        for (let i = 0; i < canvas.width; i += boxSize) {
+          for (let j = 0; j < canvas.height; j += boxSize) {
+            ctx.strokeRect(i, j, boxSize, boxSize); // Draw the grid box
+          }
+        }
+      }
+      
+      function drawBullet(bulletX, bulletY) {
+        ctx.fillStyle = "red"; // Color of the bullet
+        ctx.fillRect(bulletX, bulletY, 37, 37); // Draw the bullet
       }
 
       function drawRange(centerX, centerY) {
-         ctx.strokeStyle = "black"; // Color of the circle boundary
-         ctx.beginPath();
-         ctx.arc(centerX, centerY, towerRange, 0, 2 * Math.PI);
-         ctx.stroke(); // Only draw the boundary of the circle
-      }
-
-      function drawTower() {
-         const towerSize = 1.2; // 4x4 tower
-         const startX = (canvas.width / 2) - (towerSize * boxSize / 2); // Centering the tower
-         const startY = (canvas.height / 2) - (towerSize * boxSize / 2); // Centering the tower
-
-         ctx.fillStyle = "gray"; // Color of the tower
-         ctx.fillRect(startX, startY, towerSize * boxSize, towerSize * boxSize); // Draw the tower
-         drawRange(startX + towerSize * boxSize / 2  , startY + towerSize * boxSize / 2); // Draw the range
-        
-         return { centerX: canvas.width / 2, centerY: canvas.height / 2 };
+        ctx.strokeStyle = "black"; // Color of the circle boundary
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, towerRange, 0, 2 * Math.PI);
+        ctx.stroke(); // Only draw the boundary of the circle
       }
 
       function drawGoblin() {
-         ctx.fillStyle = "green"; // Color of the goblin
-         ctx.fillRect(goblinX, goblinY, goblinWidth, goblinHeight); // Draw the goblin box
-         ctx.fillStyle = "white"; // Color for the text
-         ctx.font = "bold 12px Arial"; // Font settings
-         ctx.fillText("Goblin", goblinX + 5, goblinY + 20); // Draw the goblin text
+        ctx.fillStyle = "green"; // Color of the goblin
+        ctx.fillRect(goblinX, goblinY, goblinWidth, goblinHeight); // Draw the goblin box
+        ctx.fillStyle = "white"; // Color for the text
+        ctx.font = "bold 12px Arial"; // Font settings
+        ctx.fillText("Goblin", goblinX + 5, goblinY + 20); // Draw the goblin text
       }
 
-      function drawBullet(bulletX , bulletY) {
-         ctx.fillStyle = "red"; // Color of the bullet
-         ctx.fillRect(bulletX, bulletY, 37, 37); // Draw the bullet
-      }
+      function drawTower() {
+        const towerSize = 1.2; // 4x4 tower
+        const startX = canvas.width / 2 - (towerSize * boxSize) / 2; // Centering the tower
+        const startY = canvas.height / 2 - (towerSize * boxSize) / 2; // Centering the tower
 
+        ctx.fillStyle = "gray"; // Color of the tower
+        ctx.fillRect(startX, startY, towerSize * boxSize, towerSize * boxSize); // Draw the tower
+        drawRange(
+          startX + (towerSize * boxSize) / 2,
+          startY + (towerSize * boxSize) / 2
+        ); // Draw the range
+        const { isInRange, attacker, target } = isInRange(goblinX, goblinY, startX + towerSize * boxSize / 2, startY + towerSize * boxSize / 2, towerRange);
+        if (isInRange) {
+            drawBullet(attacker.x, attacker.y); // Draw the bullet if within range
+         }
+
+        return { centerX: canvas.width / 2, centerY: canvas.height / 2 };
+      }
+      
 
       function updateGoblin() {
-         ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-         drawGrid(); // Redraw the grid
-         const { centerX, centerY } = drawTower(); // Draw the tower and get its center
-         goblinX += 2; // Move goblin to the right
-         if (goblinX > canvas.width) { // Reset position if it goes off screen
-            goblinX = -boxSize;
-         }
-         drawGoblin(); // Draw the goblin
-         requestAnimationFrame(updateGoblin); // Request next frame
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+        drawGrid(); // Redraw the grid
+        const { centerX, centerY } = drawTower(); // Draw the tower and get its center
+
+        goblinX += 2; // Move goblin to the right
+        if (goblinX > canvas.width) {
+          // Reset position if it goes off screen
+          goblinX = -boxSize;
+        }
+        drawGoblin(); // Draw the goblin
+        requestAnimationFrame(updateGoblin); // Request next frame
       }
 
+      function checkFunctions() {
+        const functionsToCheck = [
+          'isInRange',
+          'drawGrid',
+          'drawBullet',
+          'drawRange',
+          'drawGoblin',
+          'drawTower',
+          'updateGoblin'
+        ];
+
+        functionsToCheck.forEach(func => {
+          if (typeof window[func] === 'function') {
+            console.log(`${func} is loaded.`);
+          } else {
+            console.log(`${func} is not loaded.`);
+          }
+        });
+      }
+
+      // Call the checkFunctions after defining your functions
+      checkFunctions();
+
       updateGoblin(); // Start the goblin animation
-   </script>
-</body>
+    </script>
+  </body>
 </html>
